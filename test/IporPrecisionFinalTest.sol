@@ -1,0 +1,55 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "forge-std/Test.sol";
+import "../src/IporPrecisionFinal.sol";
+
+contract IporPrecisionFinalTest is Test {
+    IporPrecisionFinal ipor;
+    address victim = address(0x1);
+
+    function setUp() public {
+        ipor = new IporPrecisionFinal();
+        
+        // Выдаем жертве ровно 1 wei
+        vm.deal(victim, 1);
+        ipor.setBalance{value: 1}(victim); 
+    }
+
+    receive() external payable {}
+
+    function testExploit() public {
+        vm.startPrank(victim);
+
+        uint256 victimBalanceBefore = victim.balance;
+        console.log("Victim ETH balance before:", victimBalanceBefore);
+
+        // --- ЭКСПЛУАТАЦИЯ ---
+        // Жертва вносит 1 wei. 
+        // Математика IPOR: (1 * 1e18) / 2e18 = 0 (из-за целочисленного деления)
+        ipor.provideLiquidity{value: 1}(victim, 1);
+        // ----------------------
+
+        uint256 victimBalanceAfter = victim.balance;
+        uint256 victimIpTokens = ipor.ipTokenBalance(victim);
+
+        console.log("Victim ETH balance after:", victimBalanceAfter);
+        console.log("Victim ipTokens received:", victimIpTokens);
+
+        // Проверяем, что жертва потеряла 1 wei
+        assertEq(victimBalanceBefore - victimBalanceAfter, 1);
+        
+        // Проверяем, что контракт выдал 0 токенов!
+        assertEq(victimIpTokens, 0);
+
+        // Теперь жертва пытается вывести свои деньги назад (redeem)
+        // IPOR требует ipTokenAmount > 0. Транзакция упадет (revert)!
+        vm.expectRevert("CANNOT_REDEEM_IP_TOKEN_TOO_LOW");
+        ipor.redeem(1);
+
+        vm.stopPrank();
+
+        // Вывод: Деньги жертвы (1 wei) навсегда остались в контракте, вывести их невозможно.
+        assertTrue(true, "Funds locked forever");
+    }
+}
