@@ -1,66 +1,45 @@
-## Foundry
+# Smart Contract Security Audit Portfolio
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Professional smart contract security research: 8 vulnerabilities with executable Proof of Concept exploits, verified on a local chain and Ethereum Mainnet fork.
 
-Foundry consists of:
+## Highlights
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- 8 vulnerability types (Critical to Medium)
+- Mainnet fork testing against a real Uniswap V2 pool (~$49.4M TVL)
+- Executable on-chain PoC scripts with transaction hashes
+- Foundry-based methodology (forge, anvil, cast)
 
-## Documentation
+## Vulnerabilities Covered
 
-https://book.getfoundry.sh/
+| # | Vulnerability | Severity | Test |
+|---|---------------|----------|------|
+| 1 | Inflation Attack (First Depositor) | Critical | test/InflationAttackTest.sol |
+| 2 | Precision Loss (Dust) | High | test/IporPrecisionFinalTest.sol |
+| 3 | tx.origin Phishing | High | test/TxOriginRealTest.sol |
+| 4 | Reentrancy | Critical | test/ExploitTest.sol |
+| 5 | Griefing / DoS | Medium | test/GriefingFinalTest.sol |
+| 6 | Reentrant Token (LendfMe-style) | Critical | test/LendfMeAttackTest.sol |
+| 7 | Vesting Logic | High | test/VestingExploitTest.sol |
+| 8 | Vault Accounting | Medium | test/SimpleVaultExploitTest.sol |
 
-## Usage
+## Quick Start
 
-### Build
+    forge test
 
-```shell
-$ forge build
-```
+## Mainnet Fork Test
 
-### Test
+    export MAINNET_RPC="https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY"
+    forge test --match-test testRealProtocolExploit -vvvv
 
-```shell
-$ forge test
-```
+## On-Chain PoC (local Anvil)
 
-### Format
+    anvil
+    forge script script/InflationAttack.s.sol:InflationAttackScript --rpc-url http://localhost:8545 --broadcast -vvvv
 
-```shell
-$ forge fmt
-```
+## Full Report
 
-### Gas Snapshots
+See REPORT.md for detailed analysis, results and mitigations.
 
-```shell
-$ forge snapshot
-```
+## Disclaimer
 
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+Educational purposes only. Do not use against live protocols without permission.
